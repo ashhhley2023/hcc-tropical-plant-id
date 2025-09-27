@@ -1,93 +1,154 @@
-// Flashcard + Quiz App (No build, runs on GitHub Pages)
-// CSV format: commonName,scientificName,image1,image2,deck,source
+// app.js – Plant Flashcards
 
-const state = {
-  plants: [],
-  i: 0,
-  flipped: false,
-  mode: "flash",
-};
+// --- State ---
+let plants = [];
+let index = 0;
+let mode = "flash"; // "flash" | "quiz"
 
 // --- Helpers ---
-function normalize(s) {
-  return (s || "").toLowerCase().normalize("NFKD")
+function createEl(tag, attrs = {}, ...children) {
+  const el = document.createElement(tag);
+  for (let [k, v] of Object.entries(attrs)) {
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on") && typeof v === "function") {
+      el.addEventListener(k.substring(2), v);
+    } else {
+      el.setAttribute(k, v);
+    }
+  }
+  for (let c of children) {
+    if (typeof c === "string") el.appendChild(document.createTextNode(c));
+    else if (c) el.appendChild(c);
+  }
+  return el;
+}
+
+function normalize(str) {
+  return (str || "")
+    .toLowerCase()
+    .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s.-]/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
-function parseCSV(text) {
-  const lines = text.replace(/\r/g, "").split("\n");
-  const rows = [];
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    const parts = [];
-    let cur = "", inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') {
-        if (inQ && line[i+1] === '"') { cur += '"'; i++; }
-        else inQ = !inQ;
-      } else if (ch === "," && !inQ) {
-        parts.push(cur); cur = "";
-      } else cur += ch;
+
+function levenshtein(a, b) {
+  a = normalize(a);
+  b = normalize(b);
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + cost
+      );
     }
-    parts.push(cur);
-    rows.push(parts.map(p => p.trim()));
   }
-  return rows;
+  return dp[m][n];
 }
 
-// --- Elements ---
-const el = id => document.getElementById(id);
-const card = el("card");
-const img1 = el("img1");
-const thumbs = el("imgThumbs");
-const commonOut = el("commonOut");
-const sciOut = el("sciOut");
-const pos = el("pos");
-const len = el("len");
-const quizImg = el("quizImg");
-const guessCommon = el("guessCommon");
-const guessSci = el("guessSci");
-const result = el("result");
+// --- Sample data ---
+plants = [
+  {
+    commonName: "Bottle palm",
+    scientificName: "Hyophorbe lagenicaulis",
+    image1: "https://upload.wikimedia.org/wikipedia/commons/3/3f/Hyophorbe_lagenicaulis.jpg"
+  },
+  {
+    commonName: "Lady Palm",
+    scientificName: "Rhapis excelsa",
+    image1: "https://upload.wikimedia.org/wikipedia/commons/d/d7/Rhapis_excelsa3.jpg",
+    aliases: ["Rhapis Palm"]
+  }
+];
 
-// --- Rendering ---
-function showPlant() {
-  const p = state.plants[state.i];
-  if (!p) return;
-  pos.textContent = state.i + 1;
-  len.textContent = state.plants.length;
-  img1.src = p.image1 || p.image2 || "";
-  commonOut.textContent = p.commonName;
-  sciOut.textContent = p.scientificName;
-  card.classList.toggle("flipped", state.flipped);
-  quizImg.src = p.image1 || p.image2 || "";
-  guessCommon.value = "";
-  guessSci.value = "";
-  result.textContent = "";
+// --- UI ---
+function render() {
+  const app = document.querySelector(".app");
+  app.innerHTML = "";
+
+  if (!plants.length) {
+    app.appendChild(createEl("p", {}, "No plants loaded."));
+    return;
+  }
+  const plant = plants[index];
+
+  // Controls
+  const controls = createEl("div", { class: "controls" },
+    createEl("button", { onclick: prev }, "◀ Prev"),
+    createEl("button", { onclick: next }, "Next ▶"),
+    createEl("button", { onclick: shuffle }, "🔀 Shuffle"),
+    createEl("span", { style: "margin-left:auto" }, `${index + 1}/${plants.length}`),
+    createEl("button", {
+      onclick: () => { mode = "flash"; render(); },
+      class: mode === "flash" ? "active" : ""
+    }, "Flashcards"),
+    createEl("button", {
+      onclick: () => { mode = "quiz"; render(); },
+      class: mode === "quiz" ? "active" : ""
+    }, "Quiz")
+  );
+  app.appendChild(controls);
+
+  if (mode === "flash") {
+    const card = createEl("div", { class: "card" });
+    const img = createEl("img", { src: plant.image1, alt: plant.commonName, class: "plant-img" });
+    card.appendChild(img);
+    card.appendChild(createEl("p", { class: "caption" }, "Click the card to flip"));
+
+    let flipped = false;
+    card.onclick = () => {
+      flipped = !flipped;
+      card.innerHTML = flipped
+        ? `<h2>${plant.commonName}</h2><p><i>${plant.scientificName}</i></p>`
+        : `<img src="${plant.image1}" alt="${plant.commonName}" class="plant-img"/>`;
+    };
+
+    app.appendChild(card);
+  } else {
+    // Quiz mode
+    const form = createEl("div", { class: "quiz" },
+      createEl("img", { src: plant.image1, alt: plant.commonName, class: "plant-img" }),
+      createEl("label", {}, "Common name:"),
+      createEl("input", { id: "guessCommon", type: "text" }),
+      createEl("label", {}, "Scientific name:"),
+      createEl("input", { id: "guessSci", type: "text" }),
+      createEl("button", { onclick: checkAnswer }, "Check"),
+      createEl("button", { onclick: reveal }, "Reveal")
+    );
+    app.appendChild(form);
+
+    function checkAnswer() {
+      const commonGuess = document.getElementById("guessCommon").value;
+      const sciGuess = document.getElementById("guessSci").value;
+
+      const commonOk = normalize(commonGuess) === normalize(plant.commonName)
+        || (plant.aliases || []).some(a => normalize(commonGuess) === normalize(a));
+      const sciOk = normalize(sciGuess) === normalize(plant.scientificName);
+
+      alert(
+        `Common name: ${commonOk ? "✓ correct" : "✗ wrong"}\n` +
+        `Scientific name: ${sciOk ? "✓ correct" : "✗ wrong"}`
+      );
+    }
+
+    function reveal() {
+      document.getElementById("guessCommon").value = plant.commonName;
+      document.getElementById("guessSci").value = plant.scientificName;
+    }
+  }
 }
 
-// --- Controls ---
-function prev() { state.flipped=false; state.i=(state.i-1+state.plants.length)%state.plants.length; showPlant(); }
-function next() { state.flipped=false; state.i=(state.i+1)%state.plants.length; showPlant(); }
-function shuffle() {
-  for (let i=state.plants.length-1;i>0;i--) {
-    const j=Math.floor(Math.random()*(i+1));
-    [state.plants[i],state.plants[j]]=[state.plants[j],state.plants[i]];
-  }
-  state.i=0; showPlant();
-}
+// --- Navigation ---
+function prev() { index = (index - 1 + plants.length) % plants.length; render(); }
+function next() { index = (index + 1) % plants.length; render(); }
+function shuffle() { plants.sort(() => Math.random() - 0.5); index = 0; render(); }
 
-// --- Quiz ---
-function checkAnswers() {
-  const p = state.plants[state.i];
-  if (!p) return;
-  const gC = guessCommon.value.trim();
-  const gS = guessSci.value.trim();
-
-  let commonOk = gC === p.commonName;
-  // Special alias: Lady Palm = Rhapis Palm
-  if (normalize(p.scientificName) === "rhapis excelsa") {
-    if (gC === "Lady Palm" || gC === "Rhapis Palm") commonOk = true;
-  }
-  const sciOk = gS === p.s
+// --- Start ---
+document.addEventListener("DOMContentLoaded", render);

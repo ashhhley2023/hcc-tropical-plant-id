@@ -98,7 +98,12 @@ function render() {
 
   if (mode === "flash") {
     const card = createEl("div", { class: "card" });
-    const img = createEl("img", { src: plant.image1, alt: plant.commonName, class: "plant-img" });
+    const img = createEl("img", {
+      src: plant.image1,
+      alt: "Plant image",
+      class: "plant-img",
+      onerror: () => (img.src = "https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg")
+    });
     card.appendChild(img);
     card.appendChild(createEl("p", { class: "caption" }, "Click the card to flip"));
 
@@ -107,14 +112,19 @@ function render() {
       flipped = !flipped;
       card.innerHTML = flipped
         ? `<h2>${plant.commonName}</h2><p><i>${plant.scientificName}</i></p>`
-        : `<img src="${plant.image1}" alt="${plant.commonName}" class="plant-img"/>`;
+        : `<img src="${plant.image1}" alt="Plant image" class="plant-img" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg'"/>`;
     };
 
     app.appendChild(card);
   } else {
     // Quiz mode
     const form = createEl("div", { class: "quiz" },
-      createEl("img", { src: plant.image1, alt: plant.commonName, class: "plant-img" }),
+      createEl("img", {
+        src: plant.image1,
+        alt: "Plant image",
+        class: "plant-img",
+        onerror: (e) => (e.target.src = "https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg")
+      }),
       createEl("label", {}, "Common name:"),
       createEl("input", { id: "guessCommon", type: "text" }),
       createEl("label", {}, "Scientific name:"),
@@ -124,7 +134,8 @@ function render() {
     );
     app.appendChild(form);
 
-    function checkAnswer() {
+    function checkAnswer(e) {
+      e.preventDefault();
       const commonGuess = document.getElementById("guessCommon").value;
       const sciGuess = document.getElementById("guessSci").value;
 
@@ -138,7 +149,8 @@ function render() {
       );
     }
 
-    function reveal() {
+    function reveal(e) {
+      e.preventDefault();
       document.getElementById("guessCommon").value = plant.commonName;
       document.getElementById("guessSci").value = plant.scientificName;
     }

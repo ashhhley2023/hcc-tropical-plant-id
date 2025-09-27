@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Plant Flashcards</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <h1>Plant Flashcards</h1>
+      <div class="controls">
+        <button id="btn-flash" class="tab active">Flashcards</button>
+        <button id="btn-quiz" class="tab">Quiz</button>
+      </div>
+    </header>
+
+    <section class="toolbar">
+      <button id="prev">◀ Prev</button>
+      <button id="next">Next ▶</button>
+      <button id="shuffle">🔀 Shuffle</button>
+      <span class="count"><span id="pos">0</span>/<span id="len">0</span></span>
+    </section>
+
+    <section class="loader">
+      <details>
+        <summary>Load CSV</summary>
+        <p>CSV columns (order): <code>commonName,scientificName,image1,image2,deck,source</code></p>
+        <div class="load-actions">
+          <label class="file-label">
+            <input type="file" id="csvFile" accept=".csv,text/csv" />
+            Choose CSV file
+          </label>
+          <input id="csvUrl" placeholder="...or paste CSV URL (e.g. https://yourname.github.io/plants.csv)" />
+          <button id="loadUrl">Load URL</button>
+        </div>
+      </details>
+    </section>
+
+    <main id="main">
+      <!-- Flashcard -->
+      <div id="flash" class="mode">
+        <div id="card" class="card">
+          <div class="front">
+            <img id="img1" alt="Plant image" />
+            <div id="imgThumbs" class="thumbs"></div>
+          </div>
+          <div class="back">
+            <h2 id="commonOut"></h2>
+            <p id="sciOut" class="sci"></p>
+          </div>
+        </div>
+        <p class="hint">Click the card to flip</p>
+      </div>
+
+      <!-- Quiz -->
+      <div id="quiz" class="mode hidden">
+        <div class="quiz-wrap">
+          <img id="quizImg" alt="Plant image" />
+          <label>Common name
+            <input id="guessCommon" placeholder="Type the common name" />
+          </label>
+          <label>Scientific name
+            <input id="guessSci" placeholder="Type the scientific name" />
+          </label>
+          <div class="quiz-buttons">
+            <button id="check">Check</button>
+            <button id="reveal">Reveal</button>
+            <button id="reset">Reset</button>
+          </div>
+          <div id="result" class="result"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,48 +1,156 @@
-* { box-sizing: border-box; }
-body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu; }
+/* ===== Tropical theme ===== */
+:root{
+  --sand: #f8efe3;
+  --coconut: #2a2a2a;
+  --leaf: #1e9e67;
+  --leaf-2: #0d7a50;
+  --ocean: #2bb3c0;
+  --sun: #ffd46b;
+  --shell: #ffffff;
+  --shadow: 0 10px 30px rgba(0,0,0,.12);
+  --radius: 18px;
+}
 
-.app { max-width: 960px; margin: 0 auto; padding: 16px; }
-.top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-h1 { font-size: 22px; margin: 8px 0; }
-.controls .tab { border: 1px solid #ddd; border-radius: 12px; padding: 8px 12px; background: #fff; cursor: pointer; }
-.controls .tab.active { background: #000; color: #fff; }
+/* Background: subtle sand + palm gradient */
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell;
+  color: var(--coconut);
+  background:
+    radial-gradient(1200px 700px at 110% -5%, rgba(43,179,192,.16), transparent 60%),
+    radial-gradient(900px 600px at -10% 0%, rgba(30,158,103,.12), transparent 55%),
+    var(--sand);
+}
 
-.toolbar { display: flex; align-items: center; gap: 8px; margin: 12px 0; }
-.toolbar button { border: 1px solid #ddd; border-radius: 10px; padding: 8px 12px; background: #fff; cursor: pointer; }
-.toolbar .count { margin-left: auto; color: #555; font-size: 14px; }
+/* App container */
+.app{
+  max-width: 980px;
+  margin: 32px auto;
+  padding: 0 16px 40px;
+}
 
-.loader details { margin-bottom: 10px; }
-.file-label { display: inline-block; border: 1px dashed #999; border-radius: 8px; padding: 6px 10px; cursor: pointer; background: #fafafa; }
-#csvUrl { width: 420px; max-width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; }
-#loadUrl { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; }
+/* Top controls */
+.controls{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--shell);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 10px 12px;
+  position: sticky;
+  top: 12px;
+  z-index: 10;
+}
 
-.mode.hidden { display: none; }
+.controls button{
+  border: 0;
+  background: #fff;
+  padding: 8px 12px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  cursor: pointer;
+  transition: transform .05s ease, box-shadow .2s ease, background .2s ease;
+}
+.controls button:hover{ box-shadow: 0 4px 14px rgba(0,0,0,.10); }
+.controls button:active{ transform: translateY(1px); }
+.controls .active{
+  background: linear-gradient(135deg, var(--leaf), var(--ocean));
+  color: #fff;
+}
 
-.card { position: relative; height: 420px; border-radius: 18px; box-shadow: 0 6px 22px rgba(0,0,0,.08); overflow: hidden;
-  cursor: pointer; transform-style: preserve-3d; transition: transform .5s; }
-.card .front, .card .back { position: absolute; inset: 0; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; }
-.card .front { background: #fff; }
-.card .back { background: #fff; transform: rotateY(180deg); flex-direction: column; padding: 24px; gap: 8px; }
-.card.flipped { transform: rotateY(180deg); }
-.card img { width: 100%; height: 100%; object-fit: cover; }
+/* Card */
+.card{
+  margin: 20px auto 8px;
+  height: 420px;
+  max-width: 980px;
+  background: var(--shell);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
+  transform-style: preserve-3d;
+}
 
-.hint { text-align: center; color: #666; font-size: 13px; margin: 8px 0; }
-.sci { font-style: italic; color: #333; font-size: 18px; }
+.plant-img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-.thumbs { position: absolute; right: 10px; bottom: 10px; display: flex; gap: 6px; }
-.thumbs img { width: 56px; height: 56px; object-fit: cover; border: 2px solid #fff; border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,.15); cursor: pointer; }
+.caption{
+  text-align: center;
+  color: #4a4a4a;
+  font-size: 14px;
+  margin: 10px 0 6px;
+}
 
-.quiz-wrap { display: grid; gap: 10px; }
-.quiz-wrap img { width: 100%; height: 280px; object-fit: cover; border-radius: 12px; box-shadow: 0 6px 22px rgba(0,0,0,.08); }
-.quiz-wrap label { display: grid; gap: 4px; }
-.quiz-wrap input { padding: 10px; border: 1px solid #ddd; border-radius: 10px; }
+/* Quiz */
+.quiz{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  background: var(--shell);
+  padding: 16px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: 20px 0;
+}
+.quiz .plant-img{
+  height: 280px;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.10);
+}
+.quiz label{
+  font-weight: 600;
+  margin-top: 6px;
+}
+.quiz input{
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+  font-size: 16px;
+  transition: box-shadow .2s;
+}
+.quiz input:focus{
+  box-shadow: 0 0 0 3px rgba(43,179,192,.18);
+  border-color: #d6f1f3;
+}
+.quiz button{
+  justify-self: start;
+  border: 0;
+  background: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  cursor: pointer;
+  margin-right: 6px;
+}
+.quiz button:nth-of-type(1){ background: linear-gradient(135deg, var(--leaf), var(--ocean)); color:#fff; }
+.quiz button:nth-of-type(2){ background: linear-gradient(135deg, var(--sun), #ffb43b); color:#3a2a00; }
 
-.quiz-buttons { display: flex; gap: 8px; margin-top: 6px; }
-.quiz-buttons button { border: 1px solid #ddd; border-radius: 10px; padding: 8px 12px; background: #fff; cursor: pointer; }
+/* Small helpers */
+h1{
+  font-size: 28px;
+  margin: 0 0 12px;
+  display: inline-block;
+  background: linear-gradient(90deg, var(--leaf), var(--ocean));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 
-.result { border: 1px solid #eee; background: #fafafa; border-radius: 12px; padding: 10px; color: #333; min-height: 34px; }
+.caption::after{
+  content: " • 🌴";
+  opacity: .7;
+}
 
-@media (max-width: 600px) {
-  .card { height: 360px; }
+/* Mobile tweaks */
+@media (max-width: 640px){
+  .app{ padding: 0 12px 24px; }
+  .card{ height: 360px; }
+  .controls{ flex-wrap: wrap; gap: 6px; }
 }
